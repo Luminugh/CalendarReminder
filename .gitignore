@@ -1,0 +1,46 @@
+# Dependency directories
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js build output
+/.next/
+/out/
+
+# Production build output
+/build
+/dist
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE and editor folders
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.pem
+
+# TypeScript
+*.tsbuildinfo
+
+# Generated files
+.next/cache
+npm-debug.log*
