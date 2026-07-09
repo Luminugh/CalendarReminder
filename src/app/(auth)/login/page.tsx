@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useActionState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,9 +12,14 @@ import LiquidBg from "@/components/liquid-bg"
 function LoginForm() {
   const searchParams = useSearchParams()
   const errorParam = searchParams.get("error")
+  const router = useRouter()
 
   async function signInAction(_prev: unknown, formData: FormData) {
-    return signIn(formData)
+    const result = await signIn(formData)
+    if (result && "success" in result) {
+      router.push("/dashboard")
+    }
+    return result
   }
 
   async function magicLinkAction(_prev: unknown, formData: FormData) {
@@ -53,7 +58,7 @@ function LoginForm() {
                 <Label htmlFor="password" className="text-glass text-sm font-medium">Contraseña</Label>
                 <Input id="password" name="password" type="password" required className="glass-input" />
               </div>
-              {passwordState?.error && (
+              {passwordState && "error" in passwordState && (
                 <p className="text-sm text-destructive">{passwordState.error}</p>
               )}
               <Button type="submit" className="w-full glass-button text-foreground hover:text-foreground" disabled={passwordPending}>

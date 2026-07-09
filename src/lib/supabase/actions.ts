@@ -27,7 +27,7 @@ export async function signUp(
 
 export async function signIn(
   formData: FormData
-): Promise<{ error: string } | never> {
+): Promise<{ error: string } | { success: true }> {
   const supabase = await createClient()
 
   const data = {
@@ -41,8 +41,8 @@ export async function signIn(
     return { error: error.message }
   }
 
-  revalidatePath("/")
-  redirect("/dashboard")
+  revalidatePath("/", "layout")
+  return { success: true }
 }
 
 export async function signInWithMagicLink(

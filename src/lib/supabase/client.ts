@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr"
+import { serialize } from "cookie"
 
 const MAX_AGE = 60 * 60 * 24 * 365
 
@@ -18,7 +19,14 @@ export function createClient() {
         },
         setAll(cookiesToSet) {
           for (const { name, value, options } of cookiesToSet) {
-            document.cookie = `${name}=${value}; path=/; max-age=${MAX_AGE}; samesite=lax${options?.secure ? "; secure" : ""}`
+            document.cookie = serialize(name, value, {
+              path: "/",
+              maxAge: MAX_AGE,
+              sameSite: options?.sameSite ?? "lax",
+              secure: options?.secure ?? false,
+              ...(options?.domain ? { domain: options.domain } : {}),
+              ...(options?.httpOnly !== undefined ? {} : {}),
+            })
           }
         },
       },
