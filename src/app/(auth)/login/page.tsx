@@ -1,12 +1,12 @@
 "use client"
 
-import { Suspense, useActionState } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { signIn, signInWithMagicLink } from "@/lib/supabase/actions"
+import { createClient } from "@/lib/supabase/client"
 import LiquidBg from "@/components/liquid-bg"
 
 function LoginForm() {
@@ -14,20 +14,47 @@ function LoginForm() {
   const errorParam = searchParams.get("error")
   const router = useRouter()
 
-  async function signInAction(_prev: unknown, formData: FormData) {
-    const result = await signIn(formData)
-    if (result && "success" in result) {
-      router.push("/dashboard")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [magicEmail, setMagicEmail] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [magicState, setMagicState] = useState<{ success?: string; error?: string } | null>(null)
+  const [passwordPending, setPasswordPending] = useState(false)
+  const [magicPending, setMagicPending] = useState(false)
+
+  async function handlePasswordSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setPasswordError("")
+    setPasswordPending(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setPasswordPending(false)
+    if (error) {
+      setPasswordError(error.message)
+      return
     }
-    return result
+    router.push("/dashboard")
   }
 
-  async function magicLinkAction(_prev: unknown, formData: FormData) {
-    return signInWithMagicLink(formData)
+  async function handleMagicLinkSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setMagicState(null)
+    setMagicPending(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOtp({
+      email: magicEmail,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
+    })
+    setMagicPending(false)
+    if (error) {
+      setMagicState({ error: error.message })
+      return
+    }
+    setMagicState({ success: "Revisa tu correo para el enlace mágico." })
   }
-
-  const [passwordState, passwordAction, passwordPending] = useActionState(signInAction, null)
-  const [magicState, magicAction, magicPending] = useActionState(magicLinkAction, null)
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -49,20 +76,20 @@ function LoginForm() {
               <p className="animate-slide-down rounded-lg bg-green-500/10 backdrop-blur-sm p-3 text-sm text-green-600 dark:text-green-400 border border-green-500/20">{magicState.success}</p>
             )}
 
-            <form action={passwordAction} className="space-y-4">
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-glass text-sm font-medium">Correo electrónico</Label>
-                <Input id="email" name="email" type="email" placeholder="tu@correo.com" required className="glass-input" />
+                <Input id="email" type="email" placeholder="tu@correo.com" required className="glass-input" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-glass text-sm font-medium">Contraseña</Label>
-                <Input id="password" name="password" type="password" required className="glass-input" />
+                <Input id="password" type="password" required className="glass-input" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
-              {passwordState && "error" in passwordState && (
-                <p className="text-sm text-destructive">{passwordState.error}</p>
+              {passwordError && (
+                <p className="rounded-lg bg-destructive/15 backdrop-blur-sm p-3 text-sm text-destructive border border-destructive/20">{passwordError}</p>
               )}
               <Button type="submit" className="w-full glass-button text-foreground hover:text-foreground" disabled={passwordPending}>
-                {passwordPending ? "Ingresando..." : "Entrar con contraseña"}
+                {passwordPending ? "Ingresando..." : "Iniciar sesión"}
               </Button>
             </form>
 
@@ -75,11 +102,10 @@ function LoginForm() {
               </div>
             </div>
 
-            <form action={magicAction} className="space-y-4">
-              <input type="hidden" name="origin" defaultValue={typeof window !== "undefined" ? window.location.origin : ""} />
+            <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="magic-email" className="text-glass text-sm font-medium">Correo electrónico</Label>
-                <Input id="magic-email" name="email" type="email" placeholder="tu@correo.com" required className="glass-input" />
+                <Input id="magic-email" type="email" placeholder="tu@correo.com" required className="glass-input" value={magicEmail} onChange={(e) => setMagicEmail(e.target.value)} />
               </div>
               {magicState?.error && (
                 <p className="text-sm text-destructive">{magicState.error}</p>

@@ -41,7 +41,7 @@ export async function signIn(
     return { error: error.message }
   }
 
-  revalidatePath("/", "layout")
+  revalidatePath("/dashboard")
   return { success: true }
 }
 

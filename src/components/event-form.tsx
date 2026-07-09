@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { createEvent, updateEvent, deleteEvent } from "@/lib/supabase/events-actions"
 import type { EventFormData, CalendarEvent } from "@/lib/types"
-import type { ReminderTime, ReminderMethod } from "@/lib/supabase/reminder-actions"
 
 interface EventFormProps {
   open: boolean
@@ -43,9 +42,7 @@ function toLocalDatetime(iso: string) {
 
 export default function EventForm({ open, onOpenChange, onEventSaved, event, defaultStartDate, defaultEndDate }: EventFormProps) {
   async function submitAction(_prev: unknown, formData: FormData) {
-    const reminderTime = formData.get("reminder_time") as ReminderTime | "none" | null
-    const reminderMethod = formData.get("reminder_method") as ReminderMethod | null
-    const data: EventFormData & { reminder?: { time: ReminderTime | "none"; method: ReminderMethod } | null } = {
+    const data: EventFormData = {
       title: formData.get("title") as string,
       description: formData.get("description") as string,
       start_date: formData.get("start_date") as string,
@@ -54,10 +51,6 @@ export default function EventForm({ open, onOpenChange, onEventSaved, event, def
       color: formData.get("color") as string,
       category: formData.get("category") as string,
       priority: formData.get("priority") as "low" | "medium" | "high" | "urgent",
-    }
-
-    if (reminderTime) {
-      data.reminder = { time: reminderTime, method: reminderMethod || "notification" }
     }
 
     const result = event
@@ -208,40 +201,6 @@ export default function EventForm({ open, onOpenChange, onEventSaved, event, def
                     <SelectItem value="urgent">Urgente</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-
-            <div className="space-y-3 border-t border-white/20 dark:border-white/10 pt-4">
-              <Label className="text-glass text-sm font-medium">Recordatorio</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Select name="reminder_time" defaultValue="none">
-                    <SelectTrigger className="glass-input w-full text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="glass-strong border-white/20 dark:border-white/10">
-                      <SelectItem value="none">Sin recordatorio</SelectItem>
-                      <SelectItem value="at_event">A la hora del evento</SelectItem>
-                      <SelectItem value="15min">15 minutos antes</SelectItem>
-                      <SelectItem value="30min">30 minutos antes</SelectItem>
-                      <SelectItem value="1h">1 hora antes</SelectItem>
-                      <SelectItem value="2h">2 horas antes</SelectItem>
-                      <SelectItem value="1d">1 día antes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Select name="reminder_method" defaultValue="notification">
-                    <SelectTrigger className="glass-input w-full text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="glass-strong border-white/20 dark:border-white/10">
-                      <SelectItem value="notification">Notificación</SelectItem>
-                      <SelectItem value="email">Correo</SelectItem>
-                      <SelectItem value="both">Ambos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </div>
 

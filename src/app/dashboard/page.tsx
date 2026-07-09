@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { signOut } from "@/lib/supabase/actions"
 import CalendarView from "@/components/calendar-view"
 import LiquidBg from "@/components/liquid-bg"
-import ReminderToast from "@/components/reminder-toast"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -54,7 +53,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </main>
-      <ReminderToast />
     </LiquidBg>
   )
 }
